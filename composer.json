@@ -1,0 +1,26 @@
+{
+    "name":"htccs/bitrix_template_module",
+    "type": "bitrix-module-installer",
+    "description":"Bitrix custom project template module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mikhail Osotov",
+            "email": "reghan7@gmail.com"
+        }
+    ],
+    "extra": {
+        "bitrix_module_name": "CustomProjectModule"
+    },
+    "require":{
+        "php":">=5.3.0",
+        "htccs/bitrix-module-installer-plugin": "1.0.0"
+    },
+    "minimum-stability": "dev",
+    "repositories":[
+        {
+            "type": "composer",
+            "url": "http://php-packages.local.htc-cs.com"
+        }
+    ]
+}
