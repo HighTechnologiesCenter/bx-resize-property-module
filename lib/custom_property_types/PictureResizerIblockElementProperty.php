@@ -1,24 +1,21 @@
 <?php
-namespace CustomProjectModule\EventHandlers;
-
-class PropertiesHandler {
+namespace CustomPropertiesModule\CustomProperties;
+/**
+ * Класс, описывающий кастомное свойство элемента инфоблока, позволяющее загружать изображения и сразу обрабатывать его размер
+ *
+ * Class PictureResizerIblockElementProperty
+ * @package CustomPropertiesModule\CustomProperties
+ */
+class PictureResizerIblockElementProperty
+{
 	const USER_TYPE_SETTINGS_CODE = 'USER_TYPE_SETTINGS';
-	
-	public static function getUserTypeDescription()
-	{
-		return array(
-			'PROPERTY_TYPE' => 'S',
-			'USER_TYPE' => 'ResizingManager',
-			'DESCRIPTION' => 'Ресайзинг',
-			'GetPropertyFieldHtml' => array('CustomProjectModule\\EventHandlers\\PropertiesHandler', 'getPropertyFieldHtml'),
-			'GetPropertyFieldHtmlMulty' => array('CustomProjectModule\\EventHandlers\\PropertiesHandler', 'getMultiplePropertyFieldHtml'),
-			'ConvertToDB' => array('CustomProjectModule\\EventHandlers\\PropertiesHandler', 'prepareValues'),
-			'GetSettingsHTML' => array('CustomProjectModule\\EventHandlers\\PropertiesHandler', 'getResizeSettingsHtml'),
-			'PrepareSettings' => array('CustomProjectModule\\EventHandlers\\PropertiesHandler', 'prepareResizeSettings'),
-		);
-	}
 
-
+	/**
+	 * Подготовка и обработка опций, спецефических для данного свойства
+	 *
+	 * @param $fields
+	 * @return array
+	 */
 	public static function prepareResizeSettings($fields)
 	{
 		$values = array(
@@ -45,10 +42,18 @@ class PropertiesHandler {
 		return $values;
 	}
 
+	/**
+	 * Сборка html-представления опций, спецефических для данного свойства
+	 *
+	 * @param $fields
+	 * @param $htmlControlName
+	 * @param $propertyOptions
+	 * @return string
+	 */
 	public static function getResizeSettingsHtml($fields, $htmlControlName, &$propertyOptions)
 	{
 		$propertyOptions = array(
-			'HIDE' => array('FILTRABLE', 'ROW_COUNT', 'COL_COUNT', 'DEFAULT_VALUE', 'SEARCHABLE'),
+			'HIDE' => array('FILTRABLE', 'ROW_COUNT', 'COL_COUNT', 'DEFAULT_VALUE', 'SEARCHABLE', 'MULTIPLE_CNT', 'SMART_FILTER', 'WITH_DESCRIPTION'),
 			'SET' => array('FILTRABLE' => 'N', 'SEARCHABLE' => 'N'),
 			'USER_TYPE_SETTINGS_TITLE' => 'Настройки ресайза'
 		);
@@ -62,8 +67,8 @@ class PropertiesHandler {
 		return '<tr>
         <td>Высота:</td>
         <td><input type="text" size="5" name="'
-			. $htmlControlName["NAME"] . '[HEIGHT]" value="'
-			. $fields[self::USER_TYPE_SETTINGS_CODE]['HEIGHT'] . '"></td>
+		. $htmlControlName["NAME"] . '[HEIGHT]" value="'
+		. $fields[self::USER_TYPE_SETTINGS_CODE]['HEIGHT'] . '"></td>
         </tr>
         <tr>
         <td>Ширина:</td>
@@ -78,9 +83,17 @@ class PropertiesHandler {
         </tr>';
 	}
 
-	function getPropertyFieldHtml($propertyFields, $value, $htmlControlName)
+	/**
+	 * Сборка html-представления контрола для сохранения одного файла с картинкой
+	 *
+	 * @param $propertyFields
+	 * @param $value
+	 * @param $htmlControlName
+	 * @return bool|string
+	 */
+	public static function getPropertyFieldHtml($propertyFields, $value, $htmlControlName)
 	{
-		if($htmlControlName['MODE'] == 'FORM_FILL' && \CModule::IncludeModule('fileman'))
+		if($htmlControlName['MODE'] == 'FORM_FILL' && \Bitrix\Main\Loader::includeModule('fileman'))
 		{
 			return  self::createFileHtmlControl($value, $htmlControlName);
 		}
@@ -90,19 +103,27 @@ class PropertiesHandler {
 		}
 	}
 
-	public function getMultiplePropertyFieldHtml($propertyFields, $values, $htmlControlName)
+	/**
+	 * Сборка html-представления контрола для сохранения множества файлов с картинкой
+	 *
+	 * @param $propertyFields
+	 * @param $values
+	 * @param $htmlControlName
+	 * @return bool|string
+	 */
+	public static function getMultiplePropertyFieldHtml($propertyFields, $values, $htmlControlName)
 	{
-		if($htmlControlName["MODE"]=="FORM_FILL" && \CModule::IncludeModule('fileman'))
+		if($htmlControlName['MODE']=='FORM_FILL' && \Bitrix\Main\Loader::includeModule('fileman'))
 		{
 			$inputHtml = '';
 			$counter = 1;
-			foreach ($values as $key => $arOneValue)
+			foreach ($values as $value)
 			{
-				$inputHtml.= self::createFileHtmlControl($arOneValue, $htmlControlName, $counter);
+				$inputHtml .= self::createFileHtmlControl($value, $htmlControlName, $counter);
 				$counter++;
 			}
 
-			$inputHtml.= self::createFileHtmlControl(NULL, $htmlControlName, $counter);
+			$inputHtml .= self::createFileHtmlControl(NULL, $htmlControlName, $counter);
 
 			return $inputHtml;
 		}
@@ -112,6 +133,14 @@ class PropertiesHandler {
 		}
 	}
 
+	/**
+	 * Сборка html-представления контрола для сохранения файла
+	 *
+	 * @param $value
+	 * @param $htmlControlName
+	 * @param bool $index
+	 * @return string
+	 */
 	private static function createFileHtmlControl($value, $htmlControlName, $index=false)
 	{
 		if (intval($index > 0)) {
@@ -149,18 +178,34 @@ class PropertiesHandler {
 		return $inputHtml;
 	}
 
-	function prepareValues($propertyFields, $propertyValue)
+	/**
+	 * Подготовка значений для сохранения в БД
+	 *
+	 * @param $propertyFields
+	 * @param $propertyValue
+	 * @return array|bool
+	 */
+	public static function prepareValues($propertyFields, $propertyValue)
 	{
 		return self::processSingleValue($propertyFields, $propertyValue);
 	}
 
+	/**
+	 * Обработка одного значения для сохранения в БД
+	 *
+	 * @param $propertyFields
+	 * @param $propertyValue
+	 * @return array|bool
+	 */
 	private static function processSingleValue($propertyFields, $propertyValue)
 	{
+		$documentRoot = \Bitrix\Main\Application::getDocumentRoot();
+		$uploadDir = \Bitrix\Main\Config\Option::get('main', 'upload_dir', 'upload');
 		if (! empty($propertyValue['VALUE']['DELETE'])) {
 			return array('VALUE' => '');
 		}
 		if (! empty($propertyValue['VALUE']['tmp_name'])) {
-			$tempFilePath = $_SERVER['DOCUMENT_ROOT'] . '/upload/'. $propertyValue['VALUE']['name'];
+			$tempFilePath = $documentRoot . '/' . $uploadDir . '/'. $propertyValue['VALUE']['name'];
 			move_uploaded_file($propertyValue['VALUE']['tmp_name'], $tempFilePath);
 			$bitrixFileService = new \CFile();
 			$file = $bitrixFileService->MakeFileArray($tempFilePath);
@@ -187,7 +232,7 @@ class PropertiesHandler {
 			}
 
 			$file = $bitrixFileService->MakeFileArray($file['tmp_name']);
-			$file = array_merge($file, array('MODULE_ID' => 'iblock', 'del' => 'N'));
+			$file = array_merge($file, array('MODULE_ID' => 'custompropertiesmodule', 'del' => 'N'));
 			$fileResisterResult = $bitrixFileService->SaveFile($file, 'iblock/resizer');
 
 			if ($fileResisterResult !== false) {
@@ -201,4 +246,4 @@ class PropertiesHandler {
 			return false;
 		}
 	}
-} 
+}

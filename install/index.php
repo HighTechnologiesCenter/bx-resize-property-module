@@ -3,9 +3,10 @@ use Bitrix\Main\Localization\Loc;
 use Bitrix\Main;
 Loc::loadMessages(__FILE__);
 
-class customprojectmodule extends \CModule
+class custompropertiesmodule extends \CModule
 {
-	var $MODULE_ID = 'customprojectmodule';
+	const MODULE_ID = 'custompropertiesmodule';
+	var $MODULE_ID = self::MODULE_ID;
 	var $MODULE_VERSION;
 	var $MODULE_VERSION_DATE;
 	var $MODULE_NAME;
@@ -13,7 +14,7 @@ class customprojectmodule extends \CModule
 
 	var $errors = false;
 
-	public function customprojectmodule()
+	public function custompropertiesmodule()
 	{
 		$moduleVersion = array();
 		include(realpath(__DIR__) . '/version.php');
@@ -33,7 +34,7 @@ class customprojectmodule extends \CModule
 		{
 			throw new BitrixApiException(implode('', $errors));
 		}
-		\Bitrix\Main\ModuleManager::registerModule($this->MODULE_ID);
+		\Bitrix\Main\ModuleManager::registerModule(self::MODULE_ID);
 
 		return true;
 	}
@@ -42,8 +43,8 @@ class customprojectmodule extends \CModule
 	{
 		global $errors;
 
-		COption::RemoveOption($this->getModuleId());
-		\Bitrix\Main\ModuleManager::unRegisterModule($this->MODULE_ID);
+		\COption::RemoveOption(self::MODULE_ID);
+		\Bitrix\Main\ModuleManager::unRegisterModule(self::MODULE_ID);
 
 		return true;
 	}
@@ -63,7 +64,7 @@ class customprojectmodule extends \CModule
 		global $USER, $APPLICATION;
 		if ($USER->IsAdmin())
 		{
-			if (! IsModuleInstalled($this->MODULE_ID))
+			if (! IsModuleInstalled(self::MODULE_ID))
 			{
 				$this->InstallDB();
 				$this->InstallFiles();

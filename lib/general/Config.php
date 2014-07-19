@@ -1,11 +1,11 @@
 <?php
-namespace CustomProjectModule;
+namespace CustomPropertiesModule;
 
 /**
  * Конфигурация модуля
  *
  * Class Config
- * @package CustomProjectModule
+ * @package CustomPropertiesModule
  */
 class Config {
 
