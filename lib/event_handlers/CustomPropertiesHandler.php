@@ -21,4 +21,15 @@ class CustomPropertiesHandler {
 			'PrepareSettings' => array('CustomPropertiesModule\\CustomProperties\\PictureResizerIblockElementProperty', 'prepareResizeSettings'),
 		);
 	}
+
+	public static function getPictureResizerUserTypeDescription()
+	{
+		return array(
+			'USER_TYPE_ID' => 'resize_file',
+			'CLASS_NAME' => 'CustomPropertiesModule\\CustomProperties\\PictureResizerUserTypeProperty',
+			'DESCRIPTION' => 'Картинки с ресайзом',
+			'BASE_TYPE' => 'file',
+		);
+
+	}
 }

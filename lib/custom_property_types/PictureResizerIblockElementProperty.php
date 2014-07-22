@@ -1,5 +1,6 @@
 <?php
 namespace CustomPropertiesModule\CustomProperties;
+// TODO запилить языковой файл
 /**
  * Класс, описывающий кастомное свойство элемента инфоблока, позволяющее загружать изображения и сразу обрабатывать его размер
  *
@@ -173,7 +174,7 @@ class PictureResizerIblockElementProperty
 				'description' => false
 			)
 		);
-		$inputHtml .= '<input type="hidden" name=' .  $htmlControlName['VALUE'] . $indexInputNamePart . '[OLD_VALUE]" value="' . $value["VALUE"] . '">';
+		$inputHtml .= '<input type="hidden" name="' .  $htmlControlName['VALUE'] . $indexInputNamePart . '[OLD_VALUE]" value="' . $value["VALUE"] . '">';
 
 		return $inputHtml;
 	}
