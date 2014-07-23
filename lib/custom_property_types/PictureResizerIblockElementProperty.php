@@ -1,6 +1,7 @@
 <?php
 namespace CustomPropertiesModule\CustomProperties;
 // TODO запилить языковой файл
+// TODO проверить является ли файл картинкой
 /**
  * Класс, описывающий кастомное свойство элемента инфоблока, позволяющее загружать изображения и сразу обрабатывать его размер
  *
@@ -188,6 +189,7 @@ class PictureResizerIblockElementProperty
 	 */
 	public static function prepareValues($propertyFields, $propertyValue)
 	{
+		//TODO запилить ресайз для случая, когда в значении приходит ID файла
 		return self::processSingleValue($propertyFields, $propertyValue);
 	}
 
@@ -210,7 +212,7 @@ class PictureResizerIblockElementProperty
 			move_uploaded_file($propertyValue['VALUE']['tmp_name'], $tempFilePath);
 			$bitrixFileService = new \CFile();
 			$file = $bitrixFileService->MakeFileArray($tempFilePath);
-
+			//TODO решить проблему с возможным отсуствием одного из размеров ресайза
 			if (
 			(! empty($propertyFields['USER_TYPE_SETTINGS']['HEIGHT'])
 				&& (! empty($propertyFields['USER_TYPE_SETTINGS']['WIDTH'])))
@@ -234,13 +236,13 @@ class PictureResizerIblockElementProperty
 
 			$file = $bitrixFileService->MakeFileArray($file['tmp_name']);
 			$file = array_merge($file, array('MODULE_ID' => 'custompropertiesmodule', 'del' => 'N'));
-			$fileResisterResult = $bitrixFileService->SaveFile($file, 'iblock/resizer');
+			$fileResizeResult = $bitrixFileService->SaveFile($file, 'iblock/resizer');
 
-			if ($fileResisterResult !== false) {
+			if ($fileResizeResult !== false) {
 				unlink($tempFilePath);
 			}
 
-			return array('VALUE' => $fileResisterResult);
+			return array('VALUE' => $fileResizeResult);
 		} elseif(! empty($propertyValue['VALUE']['OLD_VALUE'])) {
 			return array('VALUE' => intval($propertyValue['VALUE']['OLD_VALUE']));
 		} else {

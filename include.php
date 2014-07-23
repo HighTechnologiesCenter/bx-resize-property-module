@@ -3,8 +3,9 @@
 \Bitrix\Main\Loader::registerAutoLoadClasses('custompropertiesmodule', array(
 	'CustomPropertiesModule\\EventHandlers\\CustomPropertiesHandler' => 'lib/event_handlers/CustomPropertiesHandler.php',
 	'CustomPropertiesModule\\Config' => 'lib/general/Config.php',
+	'CustomPropertiesModule\\ImageProcessingHelper' => 'lib/general/ImageProcessingHelper.php',
 	'CustomPropertiesModule\\CustomProperties\\PictureResizerIblockElementProperty' => 'lib/custom_property_types/PictureResizerIblockElementProperty.php',
-	'CustomPropertiesModule\\CustomProperties\\PictureResizerUserTypeProperty' => 'lib/custom_property_types/PictureResizerUserTypeProperty.php'
+	'CustomPropertiesModule\\CustomProperties\\PictureResizerUserTypeProperty' => 'lib/custom_property_types/PictureResizerUserTypeProperty.php',
 ));
 
 // Регистрация обработчиков событий
