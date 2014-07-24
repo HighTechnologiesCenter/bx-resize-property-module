@@ -1,6 +1,6 @@
 <?php
 namespace CustomPropertiesModule\CustomProperties;
-// TODO не работает ресайз в случае отсутствия одного из размеров
+
 use Bitrix\Main\Localization\Loc;
 Loc::loadLanguageFile(__FILE__);
 /**
@@ -269,7 +269,7 @@ class PictureResizerIblockElementProperty
 
 			if (
 			(! empty($propertyFields['USER_TYPE_SETTINGS']['HEIGHT'])
-				&& (! empty($propertyFields['USER_TYPE_SETTINGS']['WIDTH'])))
+				|| (! empty($propertyFields['USER_TYPE_SETTINGS']['WIDTH'])))
 			) {
 				$tempFileSizes = getimagesize($tempFilePath);
 				$sizes = \CustomPropertiesModule\ImageProcessingHelper::processResizeSizes(

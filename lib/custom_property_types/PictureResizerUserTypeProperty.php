@@ -1,6 +1,6 @@
 <?php
 namespace CustomPropertiesModule\CustomProperties;
-//TODO проверить множественное свойство
+
 use Bitrix\Main\Localization\Loc;
 Loc::loadLanguageFile(__FILE__);
 /**
@@ -23,8 +23,8 @@ class PictureResizerUserTypeProperty extends \CUserTypeFile {
 		$errorMessages = parent::CheckFields($userFieldParameters, $value);
 
 		$bitrixFileService = new \CFile();
-		if (is_array($value)) {
-			$isImage = $bitrixFileService->IsImage($value['tmp_name']);
+		if ((is_array($value)) && (! empty($value['tmp_name']))) {
+			$isImage = $bitrixFileService->IsImage($value['name']);
 		} else {
 			$value = intval($value);
 			$fileData = $bitrixFileService->GetFileArray($value);
