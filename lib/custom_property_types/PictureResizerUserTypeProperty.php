@@ -1,9 +1,8 @@
 <?php
 namespace CustomPropertiesModule\CustomProperties;
-
+//TODO проверить множественное свойство
 use Bitrix\Main\Localization\Loc;
 Loc::loadLanguageFile(__FILE__);
-// TODO проверить является ли файл картинкой
 /**
  * Класс описывающий кастомное пользовательское свойство типа файл с возможностью использования ресайзинга
  *

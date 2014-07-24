@@ -1,7 +1,8 @@
 <?php
 namespace CustomPropertiesModule\CustomProperties;
-// TODO запилить языковой файл
-// TODO проверить является ли файл картинкой
+// TODO не работает ресайз в случае отсутствия одного из размеров
+use Bitrix\Main\Localization\Loc;
+Loc::loadLanguageFile(__FILE__);
 /**
  * Класс, описывающий кастомное свойство элемента инфоблока, позволяющее загружать изображения и сразу обрабатывать его размер
  *
@@ -57,7 +58,7 @@ class PictureResizerIblockElementProperty
 		$propertyOptions = array(
 			'HIDE' => array('FILTRABLE', 'ROW_COUNT', 'COL_COUNT', 'DEFAULT_VALUE', 'SEARCHABLE', 'MULTIPLE_CNT', 'SMART_FILTER', 'WITH_DESCRIPTION'),
 			'SET' => array('FILTRABLE' => 'N', 'SEARCHABLE' => 'N'),
-			'USER_TYPE_SETTINGS_TITLE' => 'Настройки ресайза'
+			'USER_TYPE_SETTINGS_TITLE' => Loc::getMessage('RESIZE_SETTINGS')
 		);
 
 		if ($fields[self::USER_TYPE_SETTINGS_CODE]['USE_CROP'] == 'Y') {
@@ -67,19 +68,19 @@ class PictureResizerIblockElementProperty
 		}
 
 		return '<tr>
-        <td>Высота:</td>
+        <td>' . Loc::getMessage('HEIGHT') . ':</td>
         <td><input type="text" size="5" name="'
 		. $htmlControlName["NAME"] . '[HEIGHT]" value="'
 		. $fields[self::USER_TYPE_SETTINGS_CODE]['HEIGHT'] . '"></td>
         </tr>
         <tr>
-        <td>Ширина:</td>
+        <td>' . Loc::getMessage('WIDTH') . ':</td>
         <td><input type="text" size="5" name="'
 		. $htmlControlName['NAME'] . '[WIDTH]" value="'
 		. $fields[self::USER_TYPE_SETTINGS_CODE]['WIDTH'] . '"></td>
         </tr>
         <tr>
-        <td>Использовать кроп:</td>
+        <td>' . Loc::getMessage('USE_CROP') . ':</td>
         <td><input type="checkbox" size="5" name="'
 		. $htmlControlName['NAME'] . '[USE_CROP]" value="Y" ' . ($useCrop ? 'checked="checked"':'') .'></td>
         </tr>';
@@ -189,8 +190,54 @@ class PictureResizerIblockElementProperty
 	 */
 	public static function prepareValues($propertyFields, $propertyValue)
 	{
-		//TODO запилить ресайз для случая, когда в значении приходит ID файла
-		return self::processSingleValue($propertyFields, $propertyValue);
+		if (is_array($propertyValue)) {
+			return self::processFilledFormValue($propertyFields, $propertyValue);
+		} elseif (intval($propertyValue > 0)) {
+			$fileId = intval($propertyValue);
+			if ((empty($propertyFields['USER_TYPE_SETTINGS']['HEIGHT'])) && (empty($propertyFields['USER_TYPE_SETTINGS']['WIDTH']))) {
+				return $fileId;
+			}
+			$height = intval($propertyFields['USER_TYPE_SETTINGS']['HEIGHT']);
+			$width = intval($propertyFields['USER_TYPE_SETTINGS']['WIDTH']);
+			$bitrixFileService = new \CFile();
+			$currentFileData = $bitrixFileService->GetFileArray($fileId);
+
+			if (($currentFileData['WIDTH'] > $width) || ($currentFileData['HEIGHT'] > $height)) {
+				$sizes = \CustomPropertiesModule\ImageProcessingHelper::processResizeSizes(
+					$propertyFields['USER_TYPE_SETTINGS']['WIDTH'],
+					$propertyFields['USER_TYPE_SETTINGS']['HEIGHT'],
+					$currentFileData['HEIGHT'],
+					$currentFileData['WIDTH']
+				);
+				$height = $sizes['HEIGHT'];
+				$width = $sizes['WIDTH'];
+				if ($propertyFields['USER_TYPE_SETTINGS']['USE_CROP'] == 'Y') {
+					$resizeMode = BX_RESIZE_IMAGE_EXACT;
+				} else {
+					$resizeMode = BX_RESIZE_IMAGE_PROPORTIONAL_ALT;
+				}
+				$bitrixFileService->ResizeImage(
+					$currentFileData,
+					array(
+						'width' => $width,
+						'height' => $height
+					),
+					$resizeMode
+				);
+				$file = array_merge($currentFileData, array('MODULE_ID' => 'custompropertiesmodule', 'del' => 'N'));
+				$fileResizeResult = $bitrixFileService->SaveFile($file, 'iblock/resizer');
+
+				if ($fileResizeResult !== false) {
+					$bitrixFileService->Delete($fileId);
+				}
+
+				return $fileResizeResult;
+			} else {
+				return $fileId;
+			}
+		} else {
+			return $propertyValue;
+		}
 	}
 
 	/**
@@ -200,7 +247,7 @@ class PictureResizerIblockElementProperty
 	 * @param $propertyValue
 	 * @return array|bool
 	 */
-	private static function processSingleValue($propertyFields, $propertyValue)
+	private static function processFilledFormValue($propertyFields, $propertyValue)
 	{
 		$documentRoot = \Bitrix\Main\Application::getDocumentRoot();
 		$uploadDir = \Bitrix\Main\Config\Option::get('main', 'upload_dir', 'upload');
@@ -208,17 +255,32 @@ class PictureResizerIblockElementProperty
 			return array('VALUE' => '');
 		}
 		if (! empty($propertyValue['VALUE']['tmp_name'])) {
+			$bitrixFileService = new \CFile();
+
 			$tempFilePath = $documentRoot . '/' . $uploadDir . '/'. $propertyValue['VALUE']['name'];
 			move_uploaded_file($propertyValue['VALUE']['tmp_name'], $tempFilePath);
-			$bitrixFileService = new \CFile();
+
+			if (! $bitrixFileService->IsImage($tempFilePath)) {
+				unlink($tempFilePath);
+				return array('VALUE' => '');
+			}
+
 			$file = $bitrixFileService->MakeFileArray($tempFilePath);
-			//TODO решить проблему с возможным отсуствием одного из размеров ресайза
+
 			if (
 			(! empty($propertyFields['USER_TYPE_SETTINGS']['HEIGHT'])
 				&& (! empty($propertyFields['USER_TYPE_SETTINGS']['WIDTH'])))
 			) {
-				$height = intval($propertyFields['USER_TYPE_SETTINGS']['HEIGHT']);
-				$width = intval($propertyFields['USER_TYPE_SETTINGS']['WIDTH']);
+				$tempFileSizes = getimagesize($tempFilePath);
+				$sizes = \CustomPropertiesModule\ImageProcessingHelper::processResizeSizes(
+					$propertyFields['USER_TYPE_SETTINGS']['WIDTH'],
+					$propertyFields['USER_TYPE_SETTINGS']['HEIGHT'],
+					$tempFileSizes[1],
+					$tempFileSizes[0]
+				);
+
+				$height = $sizes['HEIGHT'];
+				$width = $sizes['WIDTH'];
 				if ($propertyFields['USER_TYPE_SETTINGS']['USE_CROP'] == 'Y') {
 					$resizeMode = BX_RESIZE_IMAGE_EXACT;
 				} else {
@@ -232,9 +294,11 @@ class PictureResizerIblockElementProperty
 					),
 					$resizeMode
 				);
+
+				$file = $bitrixFileService->MakeFileArray($file['tmp_name']);
 			}
 
-			$file = $bitrixFileService->MakeFileArray($file['tmp_name']);
+
 			$file = array_merge($file, array('MODULE_ID' => 'custompropertiesmodule', 'del' => 'N'));
 			$fileResizeResult = $bitrixFileService->SaveFile($file, 'iblock/resizer');
 
