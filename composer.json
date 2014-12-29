@@ -10,7 +10,7 @@
         }
     ],
     "extra": {
-        "bitrix_module_name": "custompropertiesmodule"
+        "name": "custompropertiesmodule"
     },
     "require":{
         "php":">=5.3.0",
