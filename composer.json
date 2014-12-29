@@ -1,5 +1,5 @@
 {
-    "name":"padlyuck/bitrix_custom_properties_module",
+    "name":"htccs/bitrix_custom_properties_module",
     "type": "bitrix-module",
     "description":"Bitrix custom iblock properties module. Allows to resize pictures within iblock section and element context.",
     "license": "MIT",
