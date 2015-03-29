@@ -1,10 +1,15 @@
-<?php if(!check_bitrix_sessid()) return;
+<?php
+
 use Bitrix\Main\Localization\Loc;
+
+if (!check_bitrix_sessid()) {
+    return;
+}
 Loc::loadMessages(__FILE__);
 
-echo CAdminMessage::ShowNote(Loc::getMessage('MODULE_INSTALL_COMPLETED')); ?>
+echo \CAdminMessage::ShowNote(Loc::getMessage('MODULE_INSTALL_COMPLETED')); ?>
 
-<form action='<?echo $APPLICATION->GetCurPage()?>'>
-	<input type='hidden' name='lang' value='<?echo LANG?>'>
-	<input type='submit' name='' value='<?echo GetMessage('MOD_BACK')?>'>
+<form action='<?= $APPLICATION->GetCurPage()?>'>
+    <input type='hidden' name='lang' value='<?= LANG?>'>
+    <input type='submit' name='' value='<?= Loc::getMessage('MOD_BACK')?>'>
 <form>
